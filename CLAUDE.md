@@ -1,110 +1,56 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+> **完整工作手册见 [AGENTS.md](AGENTS.md)** —— 架构地图、硬约束、环境坑、改动菜谱、验收标准都在那里。
+> 本文件只保留最短必要的约定，避免两份文档各说一套。最后更新：2026-10-22
 
 ## Project Overview
 
-LilMark is a Chinese legal consultation assistant built on Multi-Agent orchestration and GraphRAG. It supports multi-domain legal Q&A (civil, criminal, labor, administrative law) with knowledge graph retrieval and structured answer generation. Purpose: graduation thesis + graduate school interview showcase.
+**Law Agent RAG**：中文法律咨询助手，多智能体编排（LangGraph）+ GraphRAG 三路检索。
+用途是**简历项目与 AI Agent 岗面试**（不是论文/答辩）。取舍优先级：Agent 工程能力可见性 > 纯 UI 页面。
+
+主界面是 **Next.js 15 前端**（`frontend/`），后端 **FastAPI**（`backend/`），核心逻辑在 `src/`。
+`src/app/main.py` 的 Streamlit 界面是早期版本，仅作历史保留，不再是主入口。
 
 ## Tech Stack
 
-- **Language**: Python 3.11+
-- **Package Manager**: uv
-- **LLM**: DeepSeek V4 (via OpenAI-compatible API)
-- **Embedding**: text-embedding-v3 (DashScope)
-- **Agent Framework**: LangGraph (StateGraph for multi-agent orchestration)
-- **Graph DB**: Neo4j Community Edition (Docker)
-- **Vector Store**: FAISS
-- **Web UI**: Streamlit
-- **Config**: YAML (`config/settings.yaml`) with env var overrides
+Python 3.11+ · FastAPI + SSE · LangGraph · Neo4j 5 · FAISS · Next.js 15 + React 19 + TypeScript
+LLM `deepseek-chat` · Embedding `text-embedding-v3`（1024 维）
+配置唯一源：`config/settings.yaml`，密钥只走 `.env`（已被 git 忽略）
 
-## Common Commands
+## Commands（本机没有 uv，一律用 .venv）
 
 ```bash
-# Install dependencies
-uv sync
-
-# Run tests (all)
-uv run pytest tests/ -v
-
-# Run a single test file
-uv run pytest tests/test_processor.py -v
-
-# Run the Streamlit app
-uv run streamlit run src/app/main.py
-
-# Run import script (requires Neo4j running)
-uv run python scripts/import_sample_data.py
-
-# Import CAIL criminal cases into the graph (requires data/raw/cail/data_valid.json)
-uv run python scripts/import_cail.py --dry-run   # preview conversions
-uv run python scripts/import_cail.py --clear     # re-import, wiping old Case nodes
+.venv/Scripts/python.exe -m pytest -q                                  # 103 passed
+cd frontend && NODE_OPTIONS= npx tsc --noEmit                          # 0 error
+.venv/Scripts/python.exe -m uvicorn backend.main:app --port 8000 --reload
+cd frontend && NODE_OPTIONS= npx next dev -p 3000                      # 清 NODE_OPTIONS 否则崩溃
+.venv/Scripts/python.exe scripts/doctor.py --check-api
+.venv/Scripts/python.exe scripts/eval_retrieval.py --mode hybrid --top-k 5
 ```
 
-## Required Environment Variables
-
-- `DEEPSEEK_API_KEY` — DeepSeek API key (overrides config file)
-- `DASHSCOPE_API_KEY` — DashScope API key for embeddings (overrides config file)
-- `NEO4J_PASSWORD` — Neo4j password (overrides config file)
+本地 curl 一律加 `--noproxy '*'`（系统代理不常在线，会让本地请求变 502）。
 
 ## Architecture
 
-Four-layer architecture (bottom-up), with business logic strictly separated from UI:
-
 ```
-Data Layer → GraphRAG Layer → Agent Layer → Interaction Layer
+frontend → backend/routers → src/agents + src/retrieval → Neo4j / FAISS
 ```
 
-### Data Flow
+| 层 | 位置 | 说明 |
+|---|---|---|
+| 编排 | `src/agents/graph.py` | StateGraph：identify → retrieve → 5 领域节点 → review（条件回边） |
+| 领域 | `src/agents/domain_agent.py` | 上下文拼装、`build_sources` / `build_sources_detail` |
+| 检索 | `src/retrieval/fusion.py` | `hybrid_search()` 唯一入口，加权 RRF，案例额外附加 |
+| 接口 | `backend/routers/` | chat（SSE）、graph（真实子图）、system（运维统计）、health |
+| 前端 | `frontend/` | AppShell 统一外壳；`lib/routes.ts` 是唯一导航源 |
 
-```
-User Question → Coordinator Agent (intent/domain identification)
-  → Domain Agent (specialized Q&A)
-    → GraphRAG (hybrid retrieval)
-      → LLM generation
-    → Reviewer Agent (quality check)
-  → Response to User
-```
+## Non-negotiables
 
-### Key Modules
+1. 案例**不进** BM25/向量语料，只由图谱按条号/罪名召回。
+2. 检索 top_k 只算法条名额，类案由 `reserve_case_slots()` 额外附加。
+3. 图谱收集顺序：直接命中 → 二跳 → 案例。
+4. 条号查询必须带法名收窄（24 部法规条号重名）。
+5. 前端**不得出现硬编码假数据**；所有数字来自 `/api/*`。
+6. SSE 事件必须返回 `{"event":..., "data": "<json>"}` 的 dict。
 
-| Module | Path | Responsibility |
-|--------|------|----------------|
-| Config | `src/config.py` | Loads `config/settings.yaml`, merges env vars |
-| Data Collection | `src/data/collector.py` | Downloads legal datasets, provides sample data |
-| CAIL Loader | `src/data/cail_loader.py` | Parses CAIL2018 JSONL → `Case` dicts (int/str article normalization, 3-state imprisonment) |
-| Data Processing | `src/data/processor.py` | Splits law text into law-chapter-article structure |
-| Knowledge Graph | `src/data/kg_builder.py` | Builds Neo4j nodes/edges, MERGE-based Cypher |
-| Vector Search | `src/retrieval/vector_search.py` | FAISS index build + similarity query via DashScope embeddings |
-| Graph Search | `src/retrieval/graph_search.py` | LLM-based entity extraction → Cypher query → 2-hop traversal |
-| Fusion | `src/retrieval/fusion.py` | Weighted merge of vector+graph results with dedup, `hybrid_search()` as main entry |
-| RAG | `src/retrieval/rag.py` | Orchestrates retrieval → prompt construction → LLM call |
-| Coordinator | `src/agents/coordinator.py` | Domain identification + LangGraph StateGraph definition + `ask_agent()` entry point |
-| Domain Agent | `src/agents/domain_agent.py` | Shared base class, loads per-domain YAML config from `src/agents/config/` |
-| Reviewer | `src/agents/reviewer.py` | Checks citation presence, citation accuracy, and disclaimer in answers |
-| Streamlit UI | `src/app/main.py` | Display only — all logic lives in modules above |
-
-### Agent Routing
-
-The coordinator maps user input to one of 5 domains: `civil_law`, `criminal_law`, `labor_law`, `admin_law`, `general`. Each domain has a YAML prompt config in `src/agents/config/`. Unknown domains fall back to `general.yaml`.
-
-## Design Principles
-
-- **Logic/UI separation**: Streamlit does nothing but call `ask_agent()` and render — no business logic in `main.py`
-- **Modularity**: Each module owns one responsibility; can be tested independently
-- **Explainability**: Answers always cite law articles and cases; retrieval is traceable (critical for thesis defense)
-- **Config-driven**: Agent prompts, retrieval weights, model params all live in YAML configs
-
-## Neo4j Setup (Docker)
-
-```bash
-docker run -d --name neo4j \
-  -p 7474:7474 -p 7687:7687 \
-  -e NEO4J_AUTH=neo4j/your_password \
-  neo4j:5-community
-```
-
-## Design and Plan Docs
-
-- Design spec: `docs/superpowers/specs/2026-04-16-lexiora-design.md`
-- Implementation plan: `docs/superpowers/plans/2026-04-16-lexiora-implementation-plan.md`
+详见 [AGENTS.md](AGENTS.md) 第 3 节，每条都附了「为什么」和实测现象。
