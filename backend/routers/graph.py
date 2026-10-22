@@ -46,13 +46,47 @@ _SUBGRAPH_QUERY = """
 MATCH (l:Law {article_number: $article})
 WHERE $law = '' OR l.law_name CONTAINS $law
 OPTIONAL MATCH (c:Case)-[:APPLIES]->(l)
-WITH l, collect(DISTINCT c)[..$case_limit] AS cases
-UNWIND cases AS c
+WITH l, collect(DISTINCT c) AS all_cases
+WITH l, all_cases ORDER BY size(all_cases) DESC LIMIT 1
+WITH l, all_cases[..$case_limit] AS cases
+UNWIND CASE WHEN size(cases) = 0 THEN [null] ELSE cases END AS c
 OPTIONAL MATCH (c)-[:APPLIES]->(other:Law)
 WHERE other.article_number <> l.article_number
 RETURN l, collect(DISTINCT c) AS cases, collect(DISTINCT other) AS others
-LIMIT 1
 """
+
+
+_CN_NUM_CHARS = set("一二三四五六七八九十百千零〇")
+
+
+def _normalize_article(raw: str) -> str:
+    """把用户输入的条号统一成语料里的中文数字写法（如「第二百六十四条」）。
+
+    Neo4j 里 ``article_number`` 存的是「第二百六十四条」这种中文数字，而用户常
+    输入「264」「第264条」「264条」「二百六十四」等写法。不归一化就永远精确匹配
+    不到。复用检索通道的 ``extract_article_numbers``，保持两处口径一致。
+    """
+    from src.retrieval.graph_search import extract_article_numbers, int_to_cn
+
+    text = (raw or "").strip()
+    if not text:
+        return ""
+
+    # 1) 标准写法「第232条」「第二百三十二条」「第232条之一」直接命中规则
+    numbers = extract_article_numbers(text)
+    if numbers:
+        return numbers[0]
+
+    # 2) 兜底：剥掉「第/条」后若是纯数字（阿拉伯或中文），再包装成标准写法
+    core = text.replace("条", "").strip().lstrip("第").strip()
+    if core.isdigit():
+        number = int_to_cn(int(core))
+        return f"第{number}条" if number else text
+    if core and all(ch in _CN_NUM_CHARS for ch in core):
+        return f"第{core}条"
+
+    # 无法识别的输入原样返回，交给 Cypher 精确匹配（命中不了就返回空态）
+    return text
 
 
 def _node_to_dict(node) -> dict:
@@ -114,9 +148,12 @@ async def graph_subgraph(
 ):
     """按条号返回局部子图。
 
-    条号用中文数字（如「第二百六十四条」）。条号跨法重名（民法典/刑法
-    都有第 X 条），可选传 ``law``（法名关键词，如「刑法」）收窄到某一部法。
+    条号接受任意写法（「第二百六十四条」「264」「第264条」），内部统一归一化成
+    中文数字。条号跨法重名（民法典/刑法都有第 X 条），可选传 ``law``
+    （法名关键词，如「刑法」）收窄到某一部法。
     """
+    article = _normalize_article(article)
+
     try:
         from src.data.kg_builder import get_neo4j_driver
 

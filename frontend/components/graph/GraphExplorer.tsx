@@ -246,7 +246,9 @@ export function GraphExplorer() {
         ) : (
           <div className="graph-empty-state">
             {subgraph && !subgraph.available
-              ? "该条号未命中任何节点，或 Neo4j 未启动。"
+              ? stats && stats.available === false
+                ? "Neo4j 未连接，请先启动 Neo4j。"
+                : `未命中「${subgraph.article}」对应的节点。换个条号试试（支持：第二百六十四条 / 第264条 / 264）。`
               : "加载图谱…"}
           </div>
         )}
