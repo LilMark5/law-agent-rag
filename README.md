@@ -438,10 +438,6 @@ cd frontend && npm start
 - [ ] 移动端 PWA 支持
 - [ ] 向量索引增量更新
 
-## 🙏 致谢
-
-本项目基于 [qscoder23](https://github.com/qscoder23) 的 **Lexiora**（MIT License）二次开发：法律语料采集与解析、三路检索融合、LangGraph 编排、前端视觉均在此基础上做了重构与扩展。原项目版权声明见 [LICENSE](LICENSE)。
-
 ## 📄 License
 
 本项目采用 [MIT License](LICENSE) 开源。
