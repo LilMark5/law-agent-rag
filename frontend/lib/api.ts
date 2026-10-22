@@ -27,6 +27,7 @@ export interface StepEvent {
   domain?: string;
   domain_zh?: string;
   intent?: string;
+  keywords?: string[];
   sources_count?: number;
   retrieved_by?: string[];
   answer?: string;
@@ -34,6 +35,7 @@ export interface StepEvent {
   passed?: boolean;
   score?: number;
   issues?: string[];
+  unretrieved?: string[];
   mode?: string;
   elapsed_ms?: number;
 }
@@ -46,6 +48,7 @@ export interface DoneEvent {
     score?: number;
     mode?: string;
   };
+  conversation_id?: string;
 }
 
 export interface ErrorEvent {
@@ -95,12 +98,13 @@ export async function* parseSSEStream(
 
 export async function sendChat(
   question: string,
-  history: { question: string; answer: string }[]
+  history: { question: string; answer: string }[],
+  conversationId?: string
 ): Promise<Response> {
   const response = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question, history }),
+    body: JSON.stringify({ question, history, conversation_id: conversationId }),
   });
   return response;
 }
@@ -178,5 +182,42 @@ export interface SystemStats {
 export async function fetchSystemStats(): Promise<SystemStats> {
   const res = await fetch("/api/system/stats");
   if (!res.ok) throw new Error(`system stats ${res.status}`);
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
+// 历史会话
+// ---------------------------------------------------------------------------
+
+export interface HistorySummary {
+  id: string;
+  title: string;
+  turns: number;
+  updated_at: number;
+}
+
+export interface HistoryTurn {
+  question: string;
+  answer: string;
+  domain: string;
+  domain_zh: string;
+}
+
+export interface HistorySession {
+  id: string;
+  title: string;
+  turns: HistoryTurn[];
+  updated_at: number;
+}
+
+export async function fetchHistoryList(): Promise<HistorySummary[]> {
+  const res = await fetch("/api/history");
+  if (!res.ok) throw new Error(`history ${res.status}`);
+  return res.json();
+}
+
+export async function fetchHistoryDetail(id: string): Promise<HistorySession> {
+  const res = await fetch(`/api/history/${id}`);
+  if (!res.ok) throw new Error(`history detail ${res.status}`);
   return res.json();
 }

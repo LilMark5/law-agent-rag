@@ -15,11 +15,11 @@ export function AppShell({
   return (
     <div className="app-shell">
       <aside className="sidebar" aria-label="主导航">
-        <Link className="brand" href={routes.workspace}>
+        <Link className="brand" href={routes.home}>
           <span className="brand-mark">律</span>
           <span>
             <strong>LilMark</strong>
-            <small>法律工作台</small>
+            <small>法律 Agent 助手</small>
           </span>
         </Link>
 
@@ -45,23 +45,21 @@ export function AppShell({
           </span>
           <span>
             <strong>Lil Mark</strong>
-            <small>个人工作台 · 上海</small>
+            <small>AI Agent 工程 · 项目演示</small>
           </span>
         </div>
       </aside>
 
       <main className={`shell-main${fill ? " shell-main-fill" : ""}`}>
         <header className="topbar">
-          <label className="command-search">
-            <span>Ctrl K</span>
-            <input placeholder="搜索事项、证据与法条…" />
-          </label>
+          <span
+            style={{ color: "var(--color-ink-mute)", fontSize: "12px" }}
+          >
+            多角色 Agent 编排 · 知识图谱增强检索
+          </span>
           <div className="topbar-actions">
-            <button className="button ghost" type="button">
-              通知
-            </button>
-            <Link className="button primary" href={routes.consultation()}>
-              新建事项
+            <Link className="button ghost" href={routes.admin}>
+              系统状态
             </Link>
           </div>
         </header>

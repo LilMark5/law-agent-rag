@@ -19,6 +19,7 @@ async def done_event(
     sources: list[str],
     review: dict | None = None,
     sources_detail: list[dict] | None = None,
+    conversation_id: str | None = None,
 ) -> dict:
     payload = {"sources": sources}
     if sources_detail:
@@ -29,4 +30,6 @@ async def done_event(
             "score": review.get("score"),
             "mode": review.get("mode"),
         }
+    if conversation_id:
+        payload["conversation_id"] = conversation_id
     return await sse_event("done", payload)

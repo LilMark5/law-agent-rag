@@ -18,10 +18,12 @@ export interface AgentTrace {
   domain?: string;
   domainZh?: string;
   intent?: string;
+  keywords?: string[];
   sourcesCount?: number;
   retrievedBy?: string[];
   attempt?: number;
   review?: ReviewTrace;
+  unretrieved?: string[];
   currentStep?: string | null;
   /** 每个步骤的耗时（ms），key 为 step 名；值为该步与上一步事件之间的间隔 */
   timings?: Partial<Record<"intent" | "retrieve" | "generate" | "review", number>>;
@@ -113,6 +115,9 @@ export function AgentTimeline({ trace }: { trace: AgentTrace }) {
           <span className={clsx("domain-badge", trace.domain)}>{trace.domainZh}</span>
         )}
         {trace.intent && <span className="timeline-chip">意图：{trace.intent}</span>}
+        {trace.keywords && trace.keywords.length > 0 && (
+          <span className="timeline-chip">关键词：{trace.keywords.join("、")}</span>
+        )}
         {trace.sourcesCount != null && (
           <span className="timeline-chip">召回 {trace.sourcesCount} 条</span>
         )}
@@ -124,6 +129,11 @@ export function AgentTimeline({ trace }: { trace: AgentTrace }) {
             {trace.review.passed
               ? `审查通过 ${trace.review.score.toFixed(2)}`
               : "审查未通过"}
+          </span>
+        )}
+        {trace.unretrieved && trace.unretrieved.length > 0 && (
+          <span className="timeline-chip warn">
+            未召回(非编造)：{trace.unretrieved.join("、")}
           </span>
         )}
       </div>

@@ -46,6 +46,7 @@ export function ChatContainer() {
   const [trace, setTrace] = useState<AgentTrace>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef<ChatMessage[]>([]);
+  const conversationIdRef = useRef<string | undefined>(undefined);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -78,7 +79,7 @@ export function ChatContainer() {
     let lastElapsedMs = 0;
 
     try {
-      const response = await sendChat(question, history);
+      const response = await sendChat(question, history, conversationIdRef.current);
       const eventStream = parseSSEStream(response);
 
       for await (const event of eventStream) {
@@ -97,6 +98,7 @@ export function ChatContainer() {
               next.domain = step.domain ?? "general";
               next.domainZh = step.domain_zh ?? "通用";
               next.intent = step.intent ?? "";
+              next.keywords = step.keywords ?? [];
             }
             if (step.step === "retrieve") {
               next.sourcesCount = step.sources_count ?? 0;
@@ -112,6 +114,7 @@ export function ChatContainer() {
                 mode: step.mode ?? "rule",
                 issues: step.issues ?? [],
               };
+              next.unretrieved = step.unretrieved ?? [];
             }
             return next;
           });
@@ -138,6 +141,9 @@ export function ChatContainer() {
         } else if (event.type === "done") {
           collectedSources = event.data.sources;
           collectedSourcesDetail = event.data.sources_detail ?? [];
+          if (event.data.conversation_id) {
+            conversationIdRef.current = event.data.conversation_id;
+          }
           setPendingSources(collectedSources);
           setPendingSourcesDetail(collectedSourcesDetail);
         } else if (event.type === "error") {
@@ -194,7 +200,7 @@ export function ChatContainer() {
                 <h1>让每一个结论，都有法条可依。</h1>
                 <span className="hero-rule" />
                 <p>
-                  LilMark 法律咨询助手 · 多智能体协作 · GraphRAG 检索
+                  LilMark 法律咨询助手 · 多角色 Agent 编排 · 知识图谱增强检索
                   <br />
                   覆盖民法、刑法、劳动法、行政法四大领域
                 </p>
