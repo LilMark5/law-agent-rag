@@ -276,9 +276,9 @@ def main() -> int:
     print(f"无阻断项，警告 {report.warnings} 个")
     print("\n启动顺序：")
     print("  1) docker compose up -d")
-    print("  2) uv run uvicorn backend.main:app --reload --port 8000")
+    print("  2) uv run uvicorn backend.main:app --reload --port 8200")
     print("  3) cd frontend && npm run dev")
-    print("  4) 打开 http://localhost:3000")
+    print("  4) 打开 http://localhost:3200")
     return 0
 
 

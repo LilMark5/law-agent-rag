@@ -1,5 +1,6 @@
 """FastAPI 入口"""
 import logging
+import os
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -12,7 +13,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.routers import chat, graph, health, system
+from backend.routers import chat, graph, health, history, system
 
 logging.basicConfig(
     level=logging.INFO,
@@ -53,9 +54,29 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title="LilMark API", version="0.2.0", lifespan=lifespan)
 
+# 端口集中在这里配置，避免与本机其它项目（常见占用 8000 / 8100）打架。
+# 优先级：环境变量 > 默认值；前端 dev 端口同理（见 frontend/package.json），
+# 但浏览器实际走 Next 的同源 rewrite，CORS 只是给「前端直连后端」的场景兜底。
+# 先显式加载 .env：端口写在 .env 里也要生效（load_env_file 不会自动触发）
+from src.config import load_env_file
+
+load_env_file()
+
+API_PORT = int(os.environ.get("API_PORT", "8200"))
+FRONTEND_PORT = int(os.environ.get("FRONTEND_PORT", "3200"))
+
+_cors_origins = [
+    f"http://localhost:{FRONTEND_PORT}",
+    f"http://127.0.0.1:{FRONTEND_PORT}",
+]
+# 兼容改端口前开着的旧页面（3000），刷新后即走新端口
+for _legacy in (3000,):
+    if _legacy != FRONTEND_PORT:
+        _cors_origins += [f"http://localhost:{_legacy}", f"http://127.0.0.1:{_legacy}"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -66,9 +87,10 @@ app.include_router(health.router, prefix="/api")
 app.include_router(health.router, include_in_schema=False)
 app.include_router(chat.router, prefix="/api")
 app.include_router(graph.router, prefix="/api")
+app.include_router(history.router, prefix="/api")
 app.include_router(system.router, prefix="/api")
 
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=API_PORT, reload=True)

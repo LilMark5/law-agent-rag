@@ -177,20 +177,22 @@ uv run python scripts/doctor.py --check-api   # 自检：环境 / Key / 语料 /
 ### 5. 启动后端
 
 ```bash
-uv run uvicorn backend.main:app --reload --port 8000
+uv run uvicorn backend.main:app --reload --port 8200
 # 或 cd backend && uv run python main.py
 ```
+
+> 端口默认 **8200**（端口可用环境变量 `API_PORT` 覆盖）。不用默认的 8000 是为了避免与本机其它后端项目冲突。
 
 ### 6. 启动前端
 
 ```bash
 cd frontend && npm run dev
-# Next.js 运行在 http://localhost:3000
+# Next.js 运行在 http://localhost:3200
 ```
 
 ### 7. 打开浏览器
 
-访问 **http://localhost:3000** 开始使用。
+访问 **http://localhost:3200** 开始使用。
 
 > 💡 经典 Streamlit 版也可独立运行：
 > ```bash
@@ -241,7 +243,7 @@ print(result["domain_zh"])   # 领域中文名
 ### REST API
 
 ```bash
-curl -X POST http://localhost:8000/api/chat \
+curl -X POST http://localhost:8200/api/chat \
   -H "Content-Type: application/json" \
   -d '{"question": "用人单位不签劳动合同怎么办？", "history": []}'
 ```
@@ -386,7 +388,7 @@ npm run build   # 生产构建
 npm run lint    # 代码检查
 ```
 
-前端通过 Next.js rewrites 将 `/api/*` 代理到后端 `localhost:8000`，开发时无需额外配置。
+前端通过 Next.js rewrites 将 `/api/*` 代理到后端（默认 `http://127.0.0.1:8200`，可用 `BACKEND_ORIGIN` 覆盖，写在 `frontend/.env.local` 或系统环境变量里），开发时无需额外配置。
 
 ## 🚢 部署
 
@@ -397,7 +399,7 @@ npm run lint    # 代码检查
 cd frontend && npm run build
 
 # 2. 启动后端（生产模式）
-cd backend && uvicorn main:app --host 0.0.0.0 --port 8000
+cd backend && uvicorn main:app --host 0.0.0.0 --port 8200
 
 # 3. 启动前端
 cd frontend && npm start

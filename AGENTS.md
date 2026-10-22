@@ -125,14 +125,24 @@ SSE 事件字段（`elapsed_ms` 是**从请求开始的累计值**，前端相�
 | 现象 | 原因 | 处理 |
 |---|---|---|
 | `uv: command not found` | 这台机器没装 uv（但仓库有 `uv.lock`） | 一律用 `.venv/Scripts/python.exe` |
-| `curl http://127.0.0.1:8000` 返回 **502** | 系统代理 `http_proxy=127.0.0.1:1129` 不常在线，把本地请求转发了 | 本地请求一律加 `--noproxy '*'` |
-| `next dev` 崩溃 `SAFE_DELETE_BULK_CONFIRM_REQUIRED` | `NODE_OPTIONS` 注入的 shim 拦截了 `unlink`，清理 `.next` 时命中批量保护 | 启动前清空：`NODE_OPTIONS= npx next dev -p 3000` |
+| `curl http://127.0.0.1:8200` 返回 **502** | 系统代理 `http_proxy=127.0.0.1:1129` 不常在线，把本地请求转发了 | 本地请求一律加 `--noproxy '*'` |
+| `next dev` 崩溃 `SAFE_DELETE_BULK_CONFIRM_REQUIRED` | `NODE_OPTIONS` 注入的 shim 拦截了 `unlink`，清理 `.next` 时命中批量保护 | 启动前清空：`NODE_OPTIONS= npm run dev` |
 | Chrome headless 截图空白 / 超时 | 同上代理问题 | 加 `--no-proxy-server` |
 | `print-to-pdf` 报「另一个程序正在使用此文件」 | 目标 PDF 正被阅读器占用 | 改输出新文件名，不要去等它关闭 |
 | 中文路径下脚本报编码错 | Windows + 中文文件名 | 路径用绝对路径并加引号；写脚本时 `encoding="utf-8"` |
 
-**端口**：后端 **8000**、前端 **3000**（`next.config.ts` 把 `/api/*` rewrite 到 8000）。
-注意历史笔记里曾把两个端口写反过，以本节为准。
+**端口**：后端 **8200**、前端 **3200**。
+
+换过端口的原因：本机另一个项目 `lab_agent_std` 的后端固定用 **8000**、MCP 用 **8100**，两边一起开发时先起的那个会顶掉另一个（表现为 `WinError 10048`，而 `netstat | grep LISTENING` 可能看不到占用者）。现在两端口都可配置：
+
+| 项 | 配置位置 | 默认值 |
+|---|---|---|
+| 后端端口 | 环境变量 `API_PORT`（`.env` 或系统变量） | 8200 |
+| 前端 dev 端口 | `frontend/package.json` 的 `dev` 脚本（另有 `dev:3000` 逃生口） | 3200 |
+| Next → 后端代理目标 | 环境变量 `BACKEND_ORIGIN`（需放 `frontend/.env.local` 或系统变量，Next 读不到仓库根 `.env`） | `http://127.0.0.1:8200` |
+| CORS 白名单 | `backend/main.py` 按 `FRONTEND_PORT` 生成，另保留 3000 兼容 | 3200 + 3000 |
+
+要彻底换一套端口，改 `API_PORT` + `frontend/package.json` + `BACKEND_ORIGIN` 三处即可，代码里没有别的硬编码。
 
 ---
 
@@ -140,10 +150,10 @@ SSE 事件字段（`elapsed_ms` 是**从请求开始的累计值**，前端相�
 
 ```bash
 # 后端（开发）
-.venv/Scripts/python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
+.venv/Scripts/python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8200 --reload
 
-# 前端（开发）——必须清 NODE_OPTIONS
-cd frontend && NODE_OPTIONS= npx next dev -p 3000
+# 前端（开发）——必须清 NODE_OPTIONS；端口已写进 dev 脚本（3200）
+cd frontend && NODE_OPTIONS= npm run dev
 
 # 类型检查 / 测试
 cd frontend && NODE_OPTIONS= npx tsc --noEmit
@@ -164,7 +174,8 @@ cd frontend && NODE_OPTIONS= npx tsc --noEmit
 .venv/Scripts/python.exe scripts/sweep_fusion.py --depth 20    # 权重扫描
 
 # 端口占用 / 停服务
-netstat -ano | grep ':8000' | grep LISTEN
+#   注意：占用者可能是 Bound 而非 Listen 状态，grep LISTENING 会漏掉它
+powershell -Command "Get-NetTCPConnection -LocalPort 8200,3200 | Select-Object LocalPort,State,OwningProcess"
 taskkill //PID <pid> //F
 ```
 
@@ -217,7 +228,7 @@ taskkill //PID <pid> //F
 ```bash
 .venv/Scripts/python.exe -m pytest -q          # 必须 103+ passed，0 failed
 cd frontend && NODE_OPTIONS= npx tsc --noEmit  # 必须 0 error
-curl -s --noproxy '*' http://localhost:8000/api/health   # {"status":"ok"}
+curl -s --noproxy '*' http://localhost:8200/api/health   # {"status":"ok"}
 ```
 
 涉及前端可见改动的，再加一次真实端到端：用 headless Chrome 截图（`--no-proxy-server`），

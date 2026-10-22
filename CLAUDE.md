@@ -22,8 +22,8 @@ LLM `deepseek-chat` · Embedding `text-embedding-v3`（1024 维）
 ```bash
 .venv/Scripts/python.exe -m pytest -q                                  # 103 passed
 cd frontend && NODE_OPTIONS= npx tsc --noEmit                          # 0 error
-.venv/Scripts/python.exe -m uvicorn backend.main:app --port 8000 --reload
-cd frontend && NODE_OPTIONS= npx next dev -p 3000                      # 清 NODE_OPTIONS 否则崩溃
+.venv/Scripts/python.exe -m uvicorn backend.main:app --port 8200 --reload
+cd frontend && NODE_OPTIONS= npm run dev                               # 清 NODE_OPTIONS 否则崩溃；dev 脚本已带 -p 3200
 .venv/Scripts/python.exe scripts/doctor.py --check-api
 .venv/Scripts/python.exe scripts/eval_retrieval.py --mode hybrid --top-k 5
 ```

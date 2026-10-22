@@ -42,14 +42,15 @@ config/settings.yaml       唯一配置源（改检索参数的唯一入口）
 【本机环境坑】
 - 没装 uv，一律用 .venv/Scripts/python.exe
 - 系统代理不常在线：本地 curl 必须加 --noproxy '*'
-- 启动前端必须清 NODE_OPTIONS：cd frontend && NODE_OPTIONS= npx next dev -p 3000
+- 启动前端必须清 NODE_OPTIONS：cd frontend && NODE_OPTIONS= npm run dev
 - headless Chrome 截图要加 --no-proxy-server
-- 端口：后端 8000，前端 3000（next.config 把 /api/* 代理到 8000）
+- 端口：后端 8200，前端 3200（next.config 把 /api/* 代理到 BACKEND_ORIGIN，默认 8200）。
+  不用 8000/3000 是因为本机另一个项目 lab_agent_std 占了 8000（MCP 占 8100），会打架。
 
 【常用命令】
 .venv/Scripts/python.exe -m pytest -q
 cd frontend && NODE_OPTIONS= npx tsc --noEmit
-.venv/Scripts/python.exe -m uvicorn backend.main:app --port 8000 --reload
+.venv/Scripts/python.exe -m uvicorn backend.main:app --port 8200 --reload
 .venv/Scripts/python.exe scripts/eval_retrieval.py --mode hybrid --top-k 5
 
 【交付标准】
@@ -139,6 +140,7 @@ cd frontend && NODE_OPTIONS= npx tsc --noEmit
 | 10 | 图谱页是假的 | `GET /api/graph/{stats,subgraph}` + 力导向渲染 | 60 节点 / 59 边 |
 | 11 | 运维页 4 个假指标 | `GET /api/system/stats` + 页面重写 | 3942 / 17131 / 19645 真实 |
 | 12 | 简历与开源 | 单页简历、建仓推送、README 重写 | 远端 139 文件，`.env` 未上传 |
+| 13 | 和另一个项目抢 8000 端口 | 端口全配置化：后端 `API_PORT`(8200)、前端 `next dev -p 3200`、代理 `BACKEND_ORIGIN` | 两项目同时跑，`/api/health` 与 SSE 均正常 |
 
 ### 三条经验（比上面那张表更值钱）
 
@@ -152,7 +154,7 @@ cd frontend && NODE_OPTIONS= npx tsc --noEmit
 
 ```text
 接手一个已有项目，先读仓库根目录的 AGENTS.md（深度版）和 README.md。
-当前状态：前后端都在跑（8000 / 3000），pytest 103 passed，检索 Recall@5 0.879。
+当前状态：前后端都在跑（8200 / 3200），pytest 103 passed，检索 Recall@5 0.879。
 最近做完的：多轮对话、结构化引用溯源、逐节点耗时、真实 Neo4j 子图、运维真实统计。
 下一步候选：类案检索评测 / 对话历史持久化 / 应用容器化。
 先从 <具体任务> 开始，改动前先告诉我你会动哪些文件。

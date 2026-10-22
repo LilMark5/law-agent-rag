@@ -40,7 +40,7 @@ export default function AdminPage() {
 
         {error && (
           <div className="status-line warning">
-            无法连接后端服务，请确认 8000 端口已启动。
+            无法连接后端服务，请确认后端已启动（默认 8200，可用 API_PORT 覆盖）。
           </div>
         )}
 
