@@ -1,0 +1,36 @@
+# 本地开发用编排：只跑 Neo4j，前后端仍用 uv / npm 直跑（改代码即时生效）
+# 用法：
+#   docker compose up -d          启动
+#   docker compose ps             查看健康状态
+#   docker compose logs -f neo4j  看日志
+#   docker compose down           停止（数据保留在 volume 中）
+#   docker compose down -v        停止并清空图谱数据
+
+services:
+  neo4j:
+    image: neo4j:5-community
+    container_name: law-agent-rag-neo4j
+    restart: unless-stopped
+    ports:
+      - "7474:7474" # 浏览器控制台 http://localhost:7474
+      - "7687:7687" # Bolt 协议，后端连接用
+    environment:
+      # 密码由 .env 的 NEO4J_PASSWORD 提供，缺省值仅用于本地开发
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-law_agent_rag_2026}
+      NEO4J_server_memory_heap_initial__size: 512m
+      NEO4J_server_memory_heap_max__size: 1G
+      NEO4J_server_memory_pagecache_size: 512m
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      # 只要 Bolt 端口可连就认为就绪，避免依赖镜像内的 wget/curl
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/7687'"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+volumes:
+  # 显式指定卷名：已从旧项目目录迁移过来，避免 compose 按新目录名重建空卷。
+  neo4j_data:
+    name: law_agent_rag_neo4j_data

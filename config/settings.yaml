@@ -1,0 +1,79 @@
+llm:
+  model: "deepseek-chat"
+  api_key: ""
+  base_url: "https://api.deepseek.com"
+  temperature: 0.3
+  # 推理模型（deepseek-v4-pro 等）会先消耗思考 token，2048 常导致正文为空
+  max_tokens: 4096
+
+embedding:
+  # 任何 OpenAI 兼容的 /embeddings 服务都能用，换厂商只改这三行：
+  #   阿里百炼   base_url: https://dashscope.aliyuncs.com/compatible-mode/v1  model: text-embedding-v3
+  #   硅基流动   base_url: https://api.siliconflow.cn/v1                     model: BAAI/bge-m3
+  model: "text-embedding-v3"
+  api_key: ""
+  base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+  dimension: 1024
+  # 厂商单批上限通常为 10 条；并发过高会触发限流（429）
+  batch_size: 10
+  concurrency: 4
+  timeout: 60
+
+neo4j:
+  uri: "bolt://localhost:7687"
+  username: "neo4j"
+  password: "your_password"
+  database: "neo4j"
+
+retrieval:
+  # rrf: 加权 Reciprocal Rank Fusion（推荐，只依赖名次，规避两路分数量纲不可比）
+  # weighted: 归一名次后加权（保留原语义，便于对比实验）
+  fusion_strategy: "rrf"
+  rrf_k: 60
+  # 融合要"深召回、浅截断"：每路先取 20 条再融合、最后只留 final_top_k 条。
+  # 只各取 5 条就融合时两路几乎重合，实测融合反而低于向量单路（0.818 vs 0.848）。
+  vector_top_k: 20
+  bm25_top_k: 20
+  graph_top_k: 5
+  graph_hop: 2
+  # 图谱通道最多带回几条案例。案例排在二跳之后收集，名额固定，
+  # 否则热门法条（刑法264条挂着上千条案例）会把结果位占满、法条一条不剩。
+  graph_case_limit: 2
+  final_top_k: 8
+  # 案例是否进入 BM25 / 向量语料。默认 false：
+  # 1.7 万条案例的事实里全是「盗窃」「数额较大」这类词，进词汇检索会成批
+  # 挤掉法条召回；类案本来就该由图谱通道按条号/罪名精确召回。
+  include_cases_in_text_search: false
+  # 相对项目根目录，避免不同启动目录各存一份索引
+  index_path: "data/embeddings"
+  # 加权 RRF 的通道权重。BM25 只作为"精确词命中"的 tie-breaker，
+  # 权重过大会把它较弱的语义覆盖能力带进结果（实测 0.8~1.0 时 Recall 掉回 0.818）
+  fusion_weights:
+    vector: 1.0
+    bm25: 0.2
+    graph: 0.5
+  # 图检索是否用 LLM 抽实体。默认 false：检索链路上每条查询多等 3~8 秒，
+  # 而规则（条号正则 + 罪名词典）已经覆盖了图检索需要的精确实体。
+  graph_use_llm_entities: false
+
+review:
+  enabled: true
+  # 规则审查（正则，零成本）→ use_llm=true 时改用 LLM 充当审查官
+  use_llm: false
+  # 不通过时最多重生成几次（0 = 不重试）
+  max_retry: 1
+
+prompt:
+  # 类案注入：最多放几个案例进 prompt
+  case_context_limit: 2
+  # 单个案例事实截断长度（CAIL 事实最长近 4 万字，不截断会吃掉整个上下文）
+  case_fact_chars: 400
+
+agents:
+  domains:
+    - civil_law
+    - criminal_law
+    - labor_law
+    - admin_law
+    - general
+  default_domain: general

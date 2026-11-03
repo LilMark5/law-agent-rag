@@ -1,0 +1,270 @@
+[
+  {
+    "id": "lab-001",
+    "domain": "labor_law",
+    "question": "公司一直不和我签劳动合同，这样合法吗？",
+    "law": "中华人民共和国劳动合同法",
+    "article": "第十条",
+    "note": "书面合同订立义务"
+  },
+  {
+    "id": "lab-002",
+    "domain": "labor_law",
+    "question": "入职四个月没签合同，能主张双倍工资吗？",
+    "law": "中华人民共和国劳动合同法",
+    "article": "第八十二条",
+    "note": "二倍工资"
+  },
+  {
+    "id": "lab-003",
+    "domain": "labor_law",
+    "question": "签三年的劳动合同，试用期最长能定多久？",
+    "law": "中华人民共和国劳动合同法",
+    "article": "第十九条",
+    "note": "试用期上限"
+  },
+  {
+    "id": "lab-004",
+    "domain": "labor_law",
+    "question": "离职后公司要求我两年内不能去同行，合法吗？",
+    "law": "中华人民共和国劳动合同法",
+    "article": "第二十三条",
+    "note": "竞业限制"
+  },
+  {
+    "id": "lab-005",
+    "domain": "labor_law",
+    "question": "我想主动辞职，需要提前多久通知公司？",
+    "law": "中华人民共和国劳动合同法",
+    "article": "第三十七条",
+    "note": "劳动者单方解除"
+  },
+  {
+    "id": "lab-006",
+    "domain": "labor_law",
+    "question": "工作满两年被裁员，经济补偿怎么算？",
+    "law": "中华人民共和国劳动合同法",
+    "article": "第四十七条",
+    "note": "经济补偿标准"
+  },
+  {
+    "id": "lab-007",
+    "domain": "labor_law",
+    "question": "公司拖欠工资，劳动局能怎么处理？",
+    "law": "中华人民共和国劳动合同法",
+    "article": "第八十五条",
+    "also_accept": [
+      { "law": "中华人民共和国劳动争议调解仲裁法", "article": "第九条" },
+      { "law": "中华人民共和国劳动法", "article": "第九十一条" }
+    ],
+    "note": "拖欠劳动报酬的行政责任；这三条都直接规范同一行为，属等价引用"
+  },
+  {
+    "id": "lab-008",
+    "domain": "labor_law",
+    "question": "公司违法把我开除，赔偿金是几倍？",
+    "law": "中华人民共和国劳动合同法",
+    "article": "第八十七条",
+    "note": "违法解除赔偿金"
+  },
+  {
+    "id": "lab-009",
+    "domain": "labor_law",
+    "question": "周末加班，加班费按什么标准给？",
+    "law": "中华人民共和国劳动法",
+    "article": "第四十四条",
+    "note": "加班工资标准"
+  },
+  {
+    "id": "lab-010",
+    "domain": "labor_law",
+    "question": "劳动仲裁有没有时间限制？多久内必须申请？",
+    "law": "中华人民共和国劳动争议调解仲裁法",
+    "article": "第二十七条",
+    "note": "仲裁时效一年"
+  },
+  {
+    "id": "lab-011",
+    "domain": "labor_law",
+    "question": "上班路上被车撞了算工伤吗？",
+    "law": "工伤保险条例",
+    "article": "第十四条",
+    "note": "工伤认定情形"
+  },
+  {
+    "id": "lab-012",
+    "domain": "labor_law",
+    "question": "工作满十年有几天带薪年假？",
+    "law": "职工带薪年休假条例",
+    "article": "第三条",
+    "note": "年休假天数"
+  },
+  {
+    "id": "civ-001",
+    "domain": "civil_law",
+    "question": "自然人享有哪些人格权？",
+    "law": "中华人民共和国民法典",
+    "article": "第一百一十条",
+    "note": "人格权列举"
+  },
+  {
+    "id": "civ-002",
+    "domain": "civil_law",
+    "question": "十六岁的未成年人算完全民事行为能力人吗？",
+    "law": "中华人民共和国民法典",
+    "article": "第十八条",
+    "note": "完全民事行为能力"
+  },
+  {
+    "id": "civ-003",
+    "domain": "civil_law",
+    "question": "别人欠我钱，诉讼时效是几年？",
+    "law": "中华人民共和国民法典",
+    "article": "第一百八十八条",
+    "note": "三年诉讼时效"
+  },
+  {
+    "id": "civ-004",
+    "domain": "civil_law",
+    "question": "对方不履行合同，我能要求他承担什么责任？",
+    "law": "中华人民共和国民法典",
+    "article": "第五百七十七条",
+    "note": "违约责任"
+  },
+  {
+    "id": "civ-005",
+    "domain": "civil_law",
+    "question": "买房交的定金能超过总价的百分之二十吗？",
+    "law": "中华人民共和国民法典",
+    "article": "第五百八十六条",
+    "note": "定金上限"
+  },
+  {
+    "id": "civ-006",
+    "domain": "civil_law",
+    "question": "协议离婚是不是有个三十天的冷静期？",
+    "law": "中华人民共和国民法典",
+    "article": "第一千零七十七条",
+    "note": "离婚冷静期"
+  },
+  {
+    "id": "civ-007",
+    "domain": "civil_law",
+    "question": "父母去世，遗产的法定继承顺序是什么？",
+    "law": "中华人民共和国民法典",
+    "article": "第一千一百二十七条",
+    "note": "法定继承顺序"
+  },
+  {
+    "id": "civ-008",
+    "domain": "civil_law",
+    "question": "楼上往下扔东西砸伤人，找不到是谁扔的怎么办？",
+    "law": "中华人民共和国民法典",
+    "article": "第一千二百五十四条",
+    "note": "高空抛物责任"
+  },
+  {
+    "id": "civ-009",
+    "domain": "civil_law",
+    "question": "App 收集我的手机号，什么情况下才算合法？",
+    "law": "中华人民共和国个人信息保护法",
+    "article": "第十三条",
+    "note": "处理个人信息的合法性基础"
+  },
+  {
+    "id": "cri-001",
+    "domain": "criminal_law",
+    "question": "故意杀人会判死刑吗？",
+    "law": "中华人民共和国刑法",
+    "article": "第二百三十二条",
+    "note": "故意杀人罪量刑"
+  },
+  {
+    "id": "cri-002",
+    "domain": "criminal_law",
+    "question": "入户盗窃五万元大概判几年？",
+    "law": "中华人民共和国刑法",
+    "article": "第二百六十四条",
+    "note": "盗窃罪量刑"
+  },
+  {
+    "id": "cri-003",
+    "domain": "criminal_law",
+    "question": "以投资返利为名骗了别人十万，构成什么罪？",
+    "law": "中华人民共和国刑法",
+    "article": "第二百六十六条",
+    "note": "诈骗罪"
+  },
+  {
+    "id": "cri-004",
+    "domain": "criminal_law",
+    "question": "被人打的时候还手把人打伤，要负刑事责任吗？",
+    "law": "中华人民共和国刑法",
+    "article": "第二十条",
+    "note": "正当防卫"
+  },
+  {
+    "id": "cri-005",
+    "domain": "criminal_law",
+    "question": "开车撞人后逃逸，刑法上怎么处罚？",
+    "law": "中华人民共和国刑法",
+    "article": "第一百三十三条",
+    "note": "交通肇事罪"
+  },
+  {
+    "id": "cri-006",
+    "domain": "criminal_law",
+    "question": "国家工作人员收受财物为他人办事，构成什么罪？",
+    "law": "中华人民共和国刑法",
+    "article": "第三百八十五条",
+    "note": "受贿罪"
+  },
+  {
+    "id": "adm-001",
+    "domain": "admin_law",
+    "question": "行政处罚都有哪些种类？",
+    "law": "中华人民共和国行政处罚法",
+    "article": "第九条",
+    "note": "处罚种类"
+  },
+  {
+    "id": "adm-002",
+    "domain": "admin_law",
+    "question": "对政府的具体行政行为不服，多长时间内可以起诉？",
+    "law": "中华人民共和国行政诉讼法",
+    "article": "第四十六条",
+    "note": "六个月起诉期限"
+  },
+  {
+    "id": "adm-003",
+    "domain": "admin_law",
+    "question": "申请行政复议的期限是多久？",
+    "law": "中华人民共和国行政复议法",
+    "article": "第二十条",
+    "note": "六十日复议期限"
+  },
+  {
+    "id": "adm-004",
+    "domain": "admin_law",
+    "question": "打架斗殴被治安拘留，依据的是哪一条？",
+    "law": "中华人民共和国治安管理处罚法",
+    "article": "第五十一条",
+    "note": "殴打他人（2025 修订后由第四十三条改为第五十一条）"
+  },
+  {
+    "id": "gen-001",
+    "domain": "general",
+    "question": "起诉一个人，应该去哪个法院？",
+    "law": "中华人民共和国民事诉讼法",
+    "article": "第二十二条",
+    "note": "一般地域管辖"
+  },
+  {
+    "id": "gen-002",
+    "domain": "general",
+    "question": "犯罪嫌疑人什么情况下可以取保候审？",
+    "law": "中华人民共和国刑事诉讼法",
+    "article": "第六十七条",
+    "note": "取保候审条件"
+  }
+]
